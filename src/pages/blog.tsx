@@ -1,11 +1,11 @@
 import Head from "next/head";
 import Link from "next/link";
 
-const About = () => (
+const Blog = () => (
   <>
     <Head>
-      <title>About Us</title>
-      <meta name="description" content="Learn more about our company." />
+      <title>Blog</title>
+      <meta name="description" content="Read our latest blog posts." />
       <link rel="preconnect" href="https://fonts.gstatic.com" />
       <link
         href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Inter:wght@400;700&display=swap"
@@ -13,8 +13,8 @@ const About = () => (
       />
     </Head>
     <div>
-      <h1>About Us</h1>
-      <p>This is our company's about page.</p>
+      <h1>Blog</h1>
+      <p>Read our latest blog posts here.</p>
     </div>
     <ul>
       <li>
@@ -46,4 +46,4 @@ const About = () => (
   </>
 );
 
-export default About;
+export default Blog;
