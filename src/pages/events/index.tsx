@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 interface EventType {
-  id: number;
+  id: string;
   title: string;
   date: string;
   location: string;
@@ -16,6 +15,7 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
   const { type } = router.query;
 
   useEffect(() => {
+    console.log(events);
     if (type) {
       const filtered = events.filter((event) => event.type === type);
       setFilteredEvents(filtered);
@@ -24,38 +24,25 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
     }
   }, [type, events]);
 
+  const handleClick = async (eventType: string) => {
+    try {
+      const res = await fetch(`/api/events?type=${eventType}`);
+      const data: EventType[] = await res.json();
+      setFilteredEvents(data);
+      router.push(`/events?type=${eventType}`, undefined, { shallow: true });
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
+
   return (
     <div>
       <h1>Список событий</h1>
       <div>
-        <button
-          onClick={() => router.push("/events", undefined, { shallow: true })}
-        >
-          All
-        </button>
-        <button
-          onClick={() =>
-            router.push("/events?type=holiday", undefined, { shallow: true })
-          }
-        >
-          Holiday
-        </button>
-        <button
-          onClick={() =>
-            router.push("/events?type=networking", undefined, {
-              shallow: true,
-            })
-          }
-        >
-          Networking
-        </button>
-        <button
-          onClick={() =>
-            router.push("/events?type=charity", undefined, { shallow: true })
-          }
-        >
-          Charity
-        </button>
+        <button onClick={() => handleClick("")}>All</button>
+        <button onClick={() => handleClick("holiday")}>Holiday</button>
+        <button onClick={() => handleClick("networking")}>Networking</button>
+        <button onClick={() => handleClick("charity")}>Charity</button>
       </div>
       <ul>
         {filteredEvents.map((event) => (
@@ -77,10 +64,14 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
 };
 
 export async function getServerSideProps() {
-  const res = await fetch("http://localhost:8001/events");
-  const events: EventType[] = await res.json();
-
-  return { props: { events } };
+  try {
+    const res = await fetch("http://localhost:3000/api/events");
+    const events: EventType[] = await res.json();
+    return { props: { events } };
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    return { props: { events: [] } };
+  }
 }
 
 export default EventsPage;
