@@ -23,11 +23,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     case "POST":
       return addEvent(req, res);
     case "DELETE":
+      console.log("hello ", req.method);
       return deleteEvent(req, res);
     default:
-      return getEvents(req, res);
-
-    //      return res.status(405).json({ message: "Method Not Allowed" });
+      return res.status(405).json({ message: "Method Not Allowed" });
   }
 }
 
@@ -69,11 +68,10 @@ function deleteEvent(req: NextApiRequest, res: NextApiResponse) {
   if (index === -1) {
     return res.status(404).json({ message: "Event not found" });
   }
-
   eventsData.events.splice(index, 1);
 
   fs.writeFileSync(
-    path.join(process.cwd(), "data", "events.json"),
+    path.join(process.cwd(), "", "db.json"),
     JSON.stringify(eventsData, null, 2)
   );
 

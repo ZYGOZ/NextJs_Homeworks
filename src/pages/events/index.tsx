@@ -15,7 +15,6 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
   const { type } = router.query;
 
   useEffect(() => {
-    console.log(events);
     if (type) {
       const filtered = events.filter((event) => event.type === type);
       setFilteredEvents(filtered);
@@ -26,12 +25,37 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
 
   const handleClick = async (eventType: string) => {
     try {
-      const res = await fetch(`/api/events?type=${eventType}`);
-      const data: EventType[] = await res.json();
-      setFilteredEvents(data);
-      router.push(`/events?type=${eventType}`, undefined, { shallow: true });
+      const res = await fetch(`/api${eventType}`);
+      if (res.ok) {
+        const data: EventType[] = await res.json();
+        setFilteredEvents(data);
+        router.push(`${eventType}`, undefined, { shallow: false });
+      } else {
+        console.error("Failed to fetch events");
+      }
     } catch (error) {
       console.error("Error fetching events:", error);
+    }
+  };
+
+  const handleDelete = async (eventId: string) => {
+    try {
+      const res = await fetch(`/api/events?id=${eventId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.ok) {
+        const updatedEvents = filteredEvents.filter(
+          (event) => event.id !== eventId
+        );
+        setFilteredEvents(updatedEvents);
+      } else {
+        console.error("Failed to delete event");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
     }
   };
 
@@ -39,10 +63,16 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
     <div>
       <h1>Список событий</h1>
       <div>
-        <button onClick={() => handleClick("")}>All</button>
-        <button onClick={() => handleClick("holiday")}>Holiday</button>
-        <button onClick={() => handleClick("networking")}>Networking</button>
-        <button onClick={() => handleClick("charity")}>Charity</button>
+        <button onClick={() => handleClick("/events")}>All</button>
+        <button onClick={() => handleClick("/events?type=holiday")}>
+          Holiday
+        </button>
+        <button onClick={() => handleClick("/events?type=networking")}>
+          Networking
+        </button>
+        <button onClick={() => handleClick("/events?type=charity")}>
+          Charity
+        </button>
       </div>
       <ul>
         {filteredEvents.map((event) => (
@@ -56,9 +86,11 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
               <strong>{event.title}</strong>
             </a>
             - {event.date}, {event.location}
+            <button onClick={() => handleDelete(event.id)}>Delete</button>
           </li>
         ))}
       </ul>
+      <div>// реализовать добавление события</div>
     </div>
   );
 };
