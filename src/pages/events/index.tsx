@@ -6,12 +6,21 @@ interface EventType {
   title: string;
   date: string;
   location: string;
+  description: string;
   type: string;
 }
 
 const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
   const router = useRouter();
   const [filteredEvents, setFilteredEvents] = useState<EventType[]>(events);
+  const [newEvent, setNewEvent] = useState<EventType>({
+    id: "",
+    title: "",
+    date: "",
+    location: "",
+    description: "",
+    type: "",
+  });
   const { type } = router.query;
 
   useEffect(() => {
@@ -59,6 +68,40 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
     }
   };
 
+  const handleAddEvent = async () => {
+    try {
+      const res = await fetch(`/api/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newEvent),
+      });
+      if (res.ok) {
+        const newEventFromServer: EventType = await res.json();
+        setFilteredEvents([...filteredEvents, newEventFromServer]);
+        setNewEvent({
+          id: "",
+          title: "",
+          date: "",
+          location: "",
+          description: "",
+          type: "",
+        });
+      } else {
+        console.error("Failed to add event");
+      }
+    } catch (error) {
+      console.error("Error adding event:", error);
+    }
+  };
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: string
+  ) => {
+    setNewEvent({ ...newEvent, [field]: e.target.value });
+  };
+
   return (
     <div>
       <h1>Список событий</h1>
@@ -90,7 +133,40 @@ const EventsPage: React.FC<{ events: EventType[] }> = ({ events }) => {
           </li>
         ))}
       </ul>
-      <div>// реализовать добавление события</div>
+      <div>
+        <h2>Добавить событие:</h2>
+        <input
+          type="text"
+          value={newEvent.title}
+          onChange={(e) => handleInputChange(e, "title")}
+          placeholder="Название"
+        />
+        <input
+          type="text"
+          value={newEvent.date}
+          onChange={(e) => handleInputChange(e, "date")}
+          placeholder="Дата"
+        />
+        <input
+          type="text"
+          value={newEvent.location}
+          onChange={(e) => handleInputChange(e, "location")}
+          placeholder="Место"
+        />
+        <input
+          type="text"
+          value={newEvent.description}
+          onChange={(e) => handleInputChange(e, "description")}
+          placeholder="Описание"
+        />
+        <input
+          type="text"
+          value={newEvent.type}
+          onChange={(e) => handleInputChange(e, "type")}
+          placeholder="Тип"
+        />
+        <button onClick={handleAddEvent}>Добавить событие</button>
+      </div>
     </div>
   );
 };

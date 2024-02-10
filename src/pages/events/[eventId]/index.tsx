@@ -1,46 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+
+interface EventType {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  description: string;
+  type: string;
+}
 
 const EventDetailPage: React.FC = () => {
   const router = useRouter();
   const { eventId } = router.query;
-  const events = [
-    {
-      id: "1",
-      title: 'Концерт "Рок ночь"',
-      date: "2024-02-10",
-      location: 'Стадион "РокАрена"',
-      description: "Это будет великолепный концерт рок-музыки!",
-    },
-    {
-      id: "2",
-      title: "Выставка современного искусства",
-      date: "2024-02-15",
-      location: 'Галерея "ArtSpace"',
-      description:
-        "Приходите на нашу выставку и наслаждайтесь произведениями современных художников!",
-    },
-    {
-      id: "3",
-      title: "Презентация новой книги",
-      date: "2024-02-20",
-      location: 'Книжный магазин "Прочитай меня"',
-      description:
-        "Приглашаем вас на презентацию новой книги известного автора!",
-    },
-  ];
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
 
-  const selectedEvent = events.find((event) => event.id === eventId);
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await fetch(`/api/events?id=${eventId}`);
+        if (res.ok) {
+          const data: EventType = await res.json();
+          setSelectedEvent(data);
+        } else {
+          console.error("Failed to fetch event");
+        }
+      } catch (error) {
+        console.error("Error fetching event:", error);
+      }
+    };
+
+    if (eventId) {
+      fetchEvent();
+    }
+  }, [eventId]);
 
   if (!selectedEvent) {
-    return <div>Событие не найдено</div>;
+    return <div>Загрузка...</div>;
   }
 
   return (
     <div>
-      <h1>Детали события: {selectedEvent.title}</h1>
+      <h1>Детали события: </h1>
+      <p>Название: {selectedEvent.title}</p>
       <p>Дата: {selectedEvent.date}</p>
       <p>Местоположение: {selectedEvent.location}</p>
+      <p>Тип: {selectedEvent.type}</p>
       <p>Описание: {selectedEvent.description}</p>
     </div>
   );
