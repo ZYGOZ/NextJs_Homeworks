@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useRouter } from "next/router";
 
 interface EventType {
@@ -10,33 +10,17 @@ interface EventType {
   type: string;
 }
 
-const EventDetailPage: React.FC = () => {
+const EventDetailPage: React.FC<{ selectedEvent: EventType }> = ({
+  selectedEvent,
+}) => {
   const router = useRouter();
-  const { eventId } = router.query;
-  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
 
-  useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const res = await fetch(`/api/events?id=${eventId}`);
-        if (res.ok) {
-          const data: EventType = await res.json();
-          setSelectedEvent(data);
-        } else {
-          console.error("Failed to fetch event");
-        }
-      } catch (error) {
-        console.error("Error fetching event:", error);
-      }
-    };
-
-    if (eventId) {
-      fetchEvent();
-    }
-  }, [eventId]);
+  if (router.isFallback) {
+    return <div>Загрузка...</div>;
+  }
 
   if (!selectedEvent) {
-    return <div>Загрузка...</div>;
+    return <div>Событие не найдено</div>;
   }
 
   return (
@@ -50,5 +34,29 @@ const EventDetailPage: React.FC = () => {
     </div>
   );
 };
+
+export async function getStaticPaths() {
+  return {
+    paths: [{ params: { eventId: "1" } }],
+    fallback: true,
+  };
+}
+
+export async function getStaticProps({ params }: any) {
+  const eventId = params.eventId;
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/events?id=${eventId}`);
+    if (res.ok) {
+      const selectedEvent: EventType = await res.json();
+      return { props: { selectedEvent } };
+    } else {
+      return { props: { selectedEvent: null } };
+    }
+  } catch (error) {
+    console.error("Error fetching event:", error);
+    return { props: { selectedEvent: null } };
+  }
+}
 
 export default EventDetailPage;
